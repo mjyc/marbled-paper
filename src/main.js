@@ -13,8 +13,6 @@ import ControlKit from 'controlkit'
 import Stats from 'stats.js'
 import shuffle from 'lodash.shuffle'
 
-console.log(ControlKit)
-
 const viscosity = 5
 const maxOperations = 32
 

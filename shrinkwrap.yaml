@@ -1,6 +1,6 @@
 dependencies:
   a-big-triangle: 1.0.3
-  controlkit: 0.9.4
+  controlkit: 0.1.9
   gl-fbo: 2.0.5
   gl-matrix: 3.0.0
   gl-shader: 4.2.1
@@ -1480,11 +1480,10 @@ packages:
     dev: true
     resolution:
       integrity: sha1-wguW2MYXdIqvHBYCF2DNJ/y4y3U=
-  /controlkit/0.9.4:
-    deprecated: corrupted
+  /controlkit/0.1.9:
     dev: false
     resolution:
-      integrity: sha1-c1tX43zpgNjVBkr/ZkTyEGzh6rg=
+      integrity: sha1-AKBZiio8JfhUlDJ9htPa8bEfCKs=
   /convert-source-map/1.6.0:
     dependencies:
       safe-buffer: 5.1.2
@@ -5388,7 +5387,7 @@ shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
   a-big-triangle: ^1.0.3
-  controlkit: ^0.9.4
+  controlkit: ^0.1.9
   gl-fbo: ^2.0.5
   gl-matrix: ^3.0.0
   gl-shader: ^4.2.1

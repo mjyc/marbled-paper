@@ -37,11 +37,11 @@ const options = {
 options.color = options.colorPalette[1]
 options.operation = options.operationPalette[0]
 
-// const controls = new ControlKit()
-// const panel = controls.addPanel({ width: 250 })
-// panel.addSelect(options, 'operationPalette', { label: 'Tool', target: 'operation' })
-// panel.addColor(options, 'color', { label: 'Color', colorMode: 'hex', presets: 'colorPalette', })
-// panel.addButton('reset', clearCanvas)
+const controls = new ControlKit()
+const panel = controls.addPanel({ width: 250 })
+panel.addSelect(options, 'operationPalette', { label: 'Tool', target: 'operation' })
+panel.addColor(options, 'color', { label: 'Color', colorMode: 'hex', presets: 'colorPalette', })
+panel.addButton('reset', clearCanvas)
 
 let mouse = vec2.create()
 let isMouseDown = false

@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/main.js",
   "scripts": {
-    "start": "NODE_ENV=production parcel serve -p $PORT index.html"
+    "start": "rm -rf dist && NODE_ENV=production parcel serve -p $PORT index.html"
   },
   "repository": {
     "type": "git",

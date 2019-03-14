@@ -1,4 +1,4 @@
-import * as util from './util'
+import * as util from './util.js'
 import palette from './palette.js'
 import vertexSource from './marble.vert'
 import fragmentSource from './marble.frag'
@@ -13,11 +13,16 @@ import ControlKit from 'controlkit'
 import Stats from 'stats.js'
 import shuffle from 'lodash.shuffle'
 
+// Smoothing value for animating drops when they are created.
 const viscosity = 5
+
+// This needs to match MAX_OPS in marble.frag
 const maxOperations = 32
 
+// Create a new stats object for debugging.
 const stats = new Stats()
 
+// Add debug options to the window so you can access them from the developer console.
 window.debugOptions = {
   showStats: () => {
     stats.showPanel(1)
@@ -27,6 +32,7 @@ window.debugOptions = {
   foreground: true,
 }
 
+// Create an object to hold GUI control options.
 const options = {
   operationPalette: ['drop-small', 'drop-large', 'spray-small', 'spray-large', 'comb-small', 'comb-large', 'smudge'],
   colorPalette: palette,
@@ -35,19 +41,26 @@ const options = {
 options.color = options.colorPalette[1]
 options.operation = options.operationPalette[0]
 
+// Initialize the controls.
 const controls = new ControlKit()
 const panel = controls.addPanel({ width: 250 })
 panel.addSelect(options, 'operationPalette', { label: 'Tool', target: 'operation' })
 panel.addColor(options, 'color', { label: 'Color', colorMode: 'hex', presets: 'colorPalette', })
-panel.addButton('reset', clearCanvas)
+panel.addButton('reset', reset)
 panel.addButton('info', () => {
   window.location.href = 'https://glitch.com/~marbled-paper'
 })
 
+// For storing the mouse coordinates.
 let mouse = vec2.create()
+
+// For storing whether the left mouse button is currently held down.
 let isMouseDown = false
+
+// Operation data to send to the shader describing the most recently added operations
 let operations = []
 
+// Initialize canvas and GL context.
 const canvas = document.querySelector('#render-canvas')
 const bounds = canvas.getBoundingClientRect()
 const gl = util.getGLContext(canvas)
@@ -55,11 +68,13 @@ const gl = util.getGLContext(canvas)
 canvas.width = 1024
 canvas.height = 1024
 
+// Initialize the shader.
 const shader = createShader(gl, vertexSource, fragmentSource)
 shader.bind()
 shader.uniforms.operationCount = operations.length
 shader.uniforms.resolution = [canvas.width, canvas.height]
 
+// Create some framebuffers. Old operations that don
 const fbos = [
   createFBO(gl, [canvas.width, canvas.height], { depth: false }),
   createFBO(gl, [canvas.width, canvas.height], { depth: false })
@@ -69,7 +84,7 @@ let fboIndex = 0
 
 const emptyTexture = createTexture(gl, [canvas.width, canvas.height])
 
-clearCanvas()
+reset()
 
 function createOperation() {
   return {
@@ -117,7 +132,7 @@ function addComb(start, scale) {
   return op
 }
 
-function clearCanvas() {
+function reset() {
   const palette = shuffle(options.colorPalette)
   options.color = palette[1]
 

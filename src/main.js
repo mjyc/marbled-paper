@@ -90,27 +90,6 @@ function shiftOperations() {
   return op
 }
 
-function addDrop(start, scale) {
-  const op = shiftOperations()
-  op.type = 0
-  op.color = util.toFloatColor(options.color)
-  op.start = [...start]
-  op.end = [...start]
-  op.end[0] += scale
-  op.scale = 0
-  return op
-}
-
-function addComb(start, scale) {
-  const op = shiftOperations()
-  op.type = 1
-  op.color = util.toFloatColor(options.color)
-  op.start = [...start]
-  op.end = [...start]
-  op.scale = scale
-  return op
-}
-
 function clearCanvas() {
   const palette = shuffle(options.colorPalette)
   options.color = palette[1]
@@ -118,6 +97,8 @@ function clearCanvas() {
   gl.clearColor(...util.toFloatColor(palette[0]))
   gl.viewport(0, 0, canvas.width, canvas.height)
   gl.clear(gl.COLOR_BUFFER_BIT)
+  
+  background.clear()
 
   for (let i = 0; i < maxOperations; i++) {
     operations[i] = createOperation()

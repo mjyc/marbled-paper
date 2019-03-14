@@ -1,6 +1,6 @@
 export default class Operations {
   constructor() {
-    
+    this.array = []
   }
   
   create() {
@@ -14,16 +14,8 @@ export default class Operations {
   }
 
   shift() {
-    const op = operations.pop()
-    operations.unshift(op)
-
-    background.swap()
-    background.frameBuffer.bind()
-    shader.uniforms.backgroundTexture = background.texture.bind()
-    shader.uniforms.operationCount = 1
-    shader.uniforms.operations = operations
-    drawTriangle(gl)
-
+    const op = this.array.pop()
+    this.array.unshift(op)
     return op
   }
 

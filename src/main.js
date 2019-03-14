@@ -1,5 +1,4 @@
-import * as util from './util.js'
-import Background from './background.js'
+import * as util from './util'
 import palette from './palette.js'
 import vertexSource from './marble.vert'
 import fragmentSource from './marble.frag'
@@ -61,7 +60,13 @@ shader.bind()
 shader.uniforms.operationCount = operations.length
 shader.uniforms.resolution = [canvas.width, canvas.height]
 
-const background = new Background(canvas.width, canvas.height)
+const fbos = [
+  createFBO(gl, [canvas.width, canvas.height], { depth: false }),
+  createFBO(gl, [canvas.width, canvas.height], { depth: false })
+]
+
+let fboIndex = 0
+
 const emptyTexture = createTexture(gl, [canvas.width, canvas.height])
 
 clearCanvas()
@@ -80,13 +85,35 @@ function shiftOperations() {
   const op = operations.pop()
   operations.unshift(op)
 
-  background.swap()
-  background.frameBuffer.bind()
-  shader.uniforms.backgroundTexture = background.texture.bind()
+  const previous = fbos[fboIndex]
+  const next = fbos[fboIndex ^= 1]
+  next.bind()
+  shader.uniforms.backgroundTexture = previous.color[0].bind()
   shader.uniforms.operationCount = 1
   shader.uniforms.operations = operations
   drawTriangle(gl)
 
+  return op
+}
+
+function addDrop(start, scale) {
+  const op = shiftOperations()
+  op.type = 0
+  op.color = util.toFloatColor(options.color)
+  op.start = [...start]
+  op.end = [...start]
+  op.end[0] += scale
+  op.scale = 0
+  return op
+}
+
+function addComb(start, scale) {
+  const op = shiftOperations()
+  op.type = 1
+  op.color = util.toFloatColor(options.color)
+  op.start = [...start]
+  op.end = [...start]
+  op.scale = scale
   return op
 }
 
@@ -97,8 +124,11 @@ function clearCanvas() {
   gl.clearColor(...util.toFloatColor(palette[0]))
   gl.viewport(0, 0, canvas.width, canvas.height)
   gl.clear(gl.COLOR_BUFFER_BIT)
-  
-  background.clear()
+
+  fbos[0].bind()
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  fbos[1].bind()
+  gl.clear(gl.COLOR_BUFFER_BIT)
 
   for (let i = 0; i < maxOperations; i++) {
     operations[i] = createOperation()
@@ -172,7 +202,7 @@ const engine = loop(() => {
 
   stats.begin()
   util.unbindFBO(gl)
-  shader.uniforms.backgroundTexture = window.debugOptions.background ? background.texture.bind() : emptyTexture.bind()
+  shader.uniforms.backgroundTexture = window.debugOptions.background ? fbos[fboIndex].color[0].bind() : emptyTexture.bind()
   shader.uniforms.operationCount = window.debugOptions.foreground ? operations.length : 0
   shader.uniforms.operations = operations
   drawTriangle(gl)

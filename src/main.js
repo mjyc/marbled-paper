@@ -1,5 +1,4 @@
 import * as util from './util.js'
-import palette from './palette.js'
 import vertexSource from './marble.vert'
 import fragmentSource from './marble.frag'
 
@@ -35,10 +34,10 @@ window.debugOptions = {
 // Create an object to hold GUI control options.
 const options = {
   operationPalette: ['drop-small', 'drop-large', 'spray-small', 'spray-large', 'comb-small', 'comb-large', 'smudge'],
-  colorPalette: palette,
+  colorPalette: ['#5EC88D', '#2AA4BF', '#5558E8', '#551297', '#B41C29', '#EA663D', '#F6D364']
 }
 
-options.color = options.colorPalette[1]
+options.color = options.colorPalette[0]
 options.operation = options.operationPalette[0]
 
 // Initialize the controls.
@@ -62,11 +61,12 @@ let operations = []
 
 // Initialize canvas and GL context.
 const canvas = document.querySelector('#render-canvas')
-const bounds = canvas.getBoundingClientRect()
 const gl = util.getGLContext(canvas)
 
 canvas.width = 1024
 canvas.height = 1024
+
+let bounds = canvas.getBoundingClientRect()
 
 // Initialize the shader.
 const shader = createShader(gl, vertexSource, fragmentSource)
@@ -226,6 +226,13 @@ document.addEventListener('mouseup', () => {
 })
 
 /*
+  Handle resize events.
+*/
+window.addEventListener('resize', () => {
+  bounds = canvas.getBoundingClientRect()
+})
+
+/*
   Define the render loop.
 */
 const engine = loop(() => {
@@ -245,7 +252,7 @@ const engine = loop(() => {
     }
   }
 
-  // Animate drop operations.
+  // Animate the scale of each drop animation up to 1.
   for (let op of operations) {
     if (op.type === 0) {
       op.scale += (1 - op.scale) / viscosity

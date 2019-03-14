@@ -1,4 +1,5 @@
-import * as util from './util'
+import * as util from './util.js'
+import Background from './background.js'
 import palette from './palette.js'
 import vertexSource from './marble.vert'
 import fragmentSource from './marble.frag'
@@ -60,13 +61,7 @@ shader.bind()
 shader.uniforms.operationCount = operations.length
 shader.uniforms.resolution = [canvas.width, canvas.height]
 
-const fbos = [
-  createFBO(gl, [canvas.width, canvas.height], { depth: false }),
-  createFBO(gl, [canvas.width, canvas.height], { depth: false })
-]
-
-let fboIndex = 0
-
+const background = new Background(canvas.width, canvas.height)
 const emptyTexture = createTexture(gl, [canvas.width, canvas.height])
 
 clearCanvas()
@@ -87,7 +82,7 @@ function shiftOperations() {
 
   background.swap()
   background.frameBuffer.bind()
-  shader.uniforms.backgroundTexture = previous.color[0].bind()
+  shader.uniforms.backgroundTexture = background.texture.bind()
   shader.uniforms.operationCount = 1
   shader.uniforms.operations = operations
   drawTriangle(gl)
@@ -122,11 +117,6 @@ function clearCanvas() {
 
   gl.clearColor(...util.toFloatColor(palette[0]))
   gl.viewport(0, 0, canvas.width, canvas.height)
-  gl.clear(gl.COLOR_BUFFER_BIT)
-
-  fbos[0].bind()
-  gl.clear(gl.COLOR_BUFFER_BIT)
-  fbos[1].bind()
   gl.clear(gl.COLOR_BUFFER_BIT)
 
   for (let i = 0; i < maxOperations; i++) {
@@ -201,7 +191,7 @@ const engine = loop(() => {
 
   stats.begin()
   util.unbindFBO(gl)
-  shader.uniforms.backgroundTexture = window.debugOptions.background ? fbos[fboIndex].color[0].bind() : emptyTexture.bind()
+  shader.uniforms.backgroundTexture = window.debugOptions.background ? background.texture.bind() : emptyTexture.bind()
   shader.uniforms.operationCount = window.debugOptions.foreground ? operations.length : 0
   shader.uniforms.operations = operations
   drawTriangle(gl)

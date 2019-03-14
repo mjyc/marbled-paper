@@ -20,4 +20,10 @@ export default class Background {
   swap() {
     this.index ^= 1
   }
+  
+  clear(gl, color) {
+    for (let fbo of this.fbos) {
+      fbo.bind()
+      gl.clear(gl.COLOR_BUFFER_BIT)
+    }
 }

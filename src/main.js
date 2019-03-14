@@ -28,7 +28,7 @@ window.debugOptions = {
 }
 
 const options = {
-  operationPalette: ['drop-small', 'drop-large', 'spray-narrow', 'spray-wide', 'comb-narrow', 'comb-wide', 'smudge'],
+  operationPalette: ['drop-small', 'drop-large', 'spray-small', 'spray-large', 'comb-small', 'comb-large', 'smudge'],
   colorPalette: palette,
 }
 
@@ -40,6 +40,9 @@ const panel = controls.addPanel({ width: 250 })
 panel.addSelect(options, 'operationPalette', { label: 'Tool', target: 'operation' })
 panel.addColor(options, 'color', { label: 'Color', colorMode: 'hex', presets: 'colorPalette', })
 panel.addButton('reset', clearCanvas)
+panel.addButton('info', () => {
+  window.location.href = 'https://glitch.com/~marbled-paper'
+})
 
 let mouse = vec2.create()
 let isMouseDown = false
@@ -51,6 +54,22 @@ const gl = util.getGLContext(canvas)
 
 canvas.width = 1024
 canvas.height = 1024
+
+const shader = createShader(gl, vertexSource, fragmentSource)
+shader.bind()
+shader.uniforms.operationCount = operations.length
+shader.uniforms.resolution = [canvas.width, canvas.height]
+
+const fbos = [
+  createFBO(gl, [canvas.width, canvas.height], { depth: false }),
+  createFBO(gl, [canvas.width, canvas.height], { depth: false })
+]
+
+let fboIndex = 0
+
+const emptyTexture = createTexture(gl, [canvas.width, canvas.height])
+
+clearCanvas()
 
 function createOperation() {
   return {
@@ -128,9 +147,9 @@ canvas.addEventListener('mousedown', () => {
     addDrop(position, util.randomInRange(0.025, 0.1))
   } else if (options.operation === 'drop-large') {
     addDrop(position, util.randomInRange(0.1, 0.2))
-  } else if (options.operation === 'comb-narrow') {
+  } else if (options.operation === 'comb-small') {
     addComb(position, util.randomInRange(0.1, 0.3))
-  } else if (options.operation === 'comb-wide') {
+  } else if (options.operation === 'comb-large') {
     addComb(position, util.randomInRange(0.3, 0.6))
   } else if (options.operation === 'smudge') {
     addComb(position, 0)
@@ -147,9 +166,9 @@ document.addEventListener('mousemove', () => {
     const op = operations[0]
     const position = util.getPositionInBounds(bounds, mouse)
 
-    if (options.operation === 'comb-narrow') {
+    if (options.operation === 'comb-small') {
       op.end = position
-    } else if (options.operation === 'comb-wide') {
+    } else if (options.operation === 'comb-large') {
       op.end = position
     } else if (options.operation === 'smudge') {
       op.end = position
@@ -161,32 +180,15 @@ document.addEventListener('mouseup', () => {
   isMouseDown = false
 })
 
-
-const shader = createShader(gl, vertexSource, fragmentSource)
-shader.bind()
-shader.uniforms.operationCount = operations.length
-shader.uniforms.resolution = [canvas.width, canvas.height]
-
-const fbos = [
-  createFBO(gl, [canvas.width, canvas.height], { depth: false }),
-  createFBO(gl, [canvas.width, canvas.height], { depth: false })
-]
-
-let fboIndex = 0
-
-const emptyTexture = createTexture(gl, [canvas.width, canvas.height])
-
-clearCanvas()
-
 const engine = loop(() => {
   if (isMouseDown) {
     const position = util.getPositionInBounds(bounds, mouse)
     const offset = vec2.random(vec2.create(), Math.random())
 
-    if (options.operation === 'spray-narrow') {
+    if (options.operation === 'spray-small') {
       vec2.scaleAndAdd(position, position, offset, 0.1)
       addDrop(position, util.randomInRange(0.005, 0.015))
-    } else if (options.operation === 'spray-wide') {
+    } else if (options.operation === 'spray-large') {
       vec2.scaleAndAdd(position, position, offset, 0.3)
       addDrop(position, util.randomInRange(0.01, 0.02))
     }

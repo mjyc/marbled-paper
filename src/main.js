@@ -85,9 +85,8 @@ function shiftOperations() {
   const op = operations.pop()
   operations.unshift(op)
 
-  const previous = fbos[fboIndex]
-  const next = fbos[fboIndex ^= 1]
-  next.bind()
+  background.swap()
+  background.frameBuffer.bind()
   shader.uniforms.backgroundTexture = previous.color[0].bind()
   shader.uniforms.operationCount = 1
   shader.uniforms.operations = operations

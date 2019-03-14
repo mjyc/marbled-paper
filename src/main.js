@@ -74,18 +74,22 @@ shader.bind()
 shader.uniforms.operationCount = operations.length
 shader.uniforms.resolution = [canvas.width, canvas.height]
 
-// Create some framebuffers. Old operations that don
-const fbos = [
+// Create some framebuffers. The active framebuffer's texture is sent to the shader to be used as a background.
+// Old operations that get pushed out of the operations array get drawn to the background so they don't disappear.
+const framebuffers = [
   createFBO(gl, [canvas.width, canvas.height], { depth: false }),
   createFBO(gl, [canvas.width, canvas.height], { depth: false })
 ]
 
-let fboIndex = 0
+// Index of the active framebuffer.
+let framebufferIndex = 0
 
+// An empty texture to replace the background for debugging.
 const emptyTexture = createTexture(gl, [canvas.width, canvas.height])
 
-reset()
-
+/*
+  Create a new operation object.
+*/
 function createOperation() {
   return {
     type: -1,
@@ -96,12 +100,20 @@ function createOperation() {
   }
 }
 
+/*
+  Replace the oldest operation with a new blank one, and draw the old one to the background.
+*/
 function shiftOperations() {
+  
+  // Cycle operations.
   const op = operations.pop()
   operations.unshift(op)
 
-  const previous = fbos[fboIndex]
-  const next = fbos[fboIndex ^= 1]
+  // Swap framebuffers.
+  const previous = framebuffers[framebufferIndex]
+  const next = framebuffers[framebufferIndex ^= 1]
+  
+  // Draw the old operation to the background.
   next.bind()
   shader.uniforms.backgroundTexture = previous.color[0].bind()
   shader.uniforms.operationCount = 1
@@ -111,6 +123,9 @@ function shiftOperations() {
   return op
 }
 
+/*
+  Add a new drop operation.
+*/
 function addDrop(start, scale) {
   const op = shiftOperations()
   op.type = 0
@@ -122,6 +137,9 @@ function addDrop(start, scale) {
   return op
 }
 
+/*
+  Add a new comb operation.
+*/
 function addComb(start, scale) {
   const op = shiftOperations()
   op.type = 1
@@ -132,6 +150,9 @@ function addComb(start, scale) {
   return op
 }
 
+/*
+  Shuffle the colors, clear the canvas and framebuffers, and empty the operations array.
+*/
 function reset() {
   const palette = shuffle(options.colorPalette)
   options.color = palette[1]
@@ -140,9 +161,9 @@ function reset() {
   gl.viewport(0, 0, canvas.width, canvas.height)
   gl.clear(gl.COLOR_BUFFER_BIT)
 
-  fbos[0].bind()
+  framebuffers[0].bind()
   gl.clear(gl.COLOR_BUFFER_BIT)
-  fbos[1].bind()
+  framebuffers[1].bind()
   gl.clear(gl.COLOR_BUFFER_BIT)
 
   for (let i = 0; i < maxOperations; i++) {
@@ -150,6 +171,9 @@ function reset() {
   }
 }
 
+/*
+  Handle mousedown events.
+*/
 canvas.addEventListener('mousedown', () => {
   if (event.button !== 0) {
     isMouseDown = false
@@ -173,6 +197,9 @@ canvas.addEventListener('mousedown', () => {
   isMouseDown = true
 })
 
+/*
+  Handle mousemove events.
+*/
 document.addEventListener('mousemove', () => {
   mouse[0] = event.clientX
   mouse[1] = event.clientY
@@ -191,11 +218,20 @@ document.addEventListener('mousemove', () => {
   }
 })
 
+/*
+  Handle mousemove events.
+*/
 document.addEventListener('mouseup', () => {
   isMouseDown = false
 })
 
+/*
+  Define the render loop.
+*/
 const engine = loop(() => {
+  stats.begin()
+  
+  // Spray drops if the mouse is held down and a spray tool is selected.
   if (isMouseDown) {
     const position = util.getPositionInBounds(bounds, mouse)
     const offset = vec2.random(vec2.create(), Math.random())
@@ -209,19 +245,24 @@ const engine = loop(() => {
     }
   }
 
+  // Animate drop operations.
   for (let op of operations) {
     if (op.type === 0) {
       op.scale += (1 - op.scale) / viscosity
     }
   }
 
-  stats.begin()
+  // Fill the entire canvas with the output of the shader.
   util.unbindFBO(gl)
-  shader.uniforms.backgroundTexture = window.debugOptions.background ? fbos[fboIndex].color[0].bind() : emptyTexture.bind()
+  shader.uniforms.backgroundTexture = window.debugOptions.background ? framebuffers[framebufferIndex].color[0].bind() : emptyTexture.bind()
   shader.uniforms.operationCount = window.debugOptions.foreground ? operations.length : 0
   shader.uniforms.operations = operations
   drawTriangle(gl)
+  
   stats.end()
 })
 
+
+// Let's go!
+reset()
 engine.start()

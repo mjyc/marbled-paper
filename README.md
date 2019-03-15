@@ -23,3 +23,10 @@ Several preset colors are available, but you can click on the current color to c
 
 ## How it works
 
+The app is mostly a fragment shader (`src/marble.frag`) that takes a list of *operations* and draws them to a WebGL canvas. An operation is either a drop or comb pattern, as both spray and smudge are just variations of the other two. `src/main.js` is responsible for setting everything up, handling user input and running the animation.
+
+
+
+Because the shader can only handle a limited number of operations, old operations that get pushed out of the list by new ones are drawn to a background texture. This texture can accumulate operations endlessly, but it doesn't look as crisp as the operations that are still on the list. You can see the difference between the background and foreground by changing which ones get displayed in the debug options in `src/main.js`.
+
+I'm using Parcel to build everything in `src` into a hidden `dist` folder.

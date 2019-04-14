@@ -12,6 +12,8 @@ import ControlKit from 'controlkit'
 import Stats from 'stats.js'
 import shuffle from 'lodash.shuffle'
 
+import Meyda from 'meyda';
+
 // Smoothing value for animating drops when they are created.
 const viscosity = 5
 
@@ -231,6 +233,46 @@ document.addEventListener('mouseup', () => {
 window.addEventListener('resize', () => {
   bounds = canvas.getBoundingClientRect()
 })
+
+/*
+  Define a sound-based interface
+*/
+if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+  throw 'Browser API navigator.mediaDevices.getUserMedia not available';
+}
+
+const context = new AudioContext();
+
+navigator.mediaDevices.getUserMedia({
+  'audio': true,
+  'video': false,
+}).then((stream) => {
+  const source = context.createMediaStreamSource(stream);
+  context.resume();
+  Meyda.createMeydaAnalyzer({
+    featureExtractors: ['loudness'],
+    startImmediately: true,
+    audioContext: context,
+    source: source,
+    callback: features => {
+      if (features.loudness.total > 50) {
+        options.color = shuffle(options.colorPalette)[1];
+      } else if (features.loudness.total > 40) {
+        const position = [util.randomInRange(0.1, 0.9), util.randomInRange(0.1, 0.9)];
+        addDrop(position, util.randomInRange(0.025, 0.1));
+        // comb-small
+        addComb(position, util.randomInRange(0.1, 0.3));
+        operations[0].end = [
+          position[0] + util.randomInRange(-0.05, 0.05),
+          position[1] + util.randomInRange(-0.05, 0.05),
+        ];
+      }
+    },
+  });
+}).catch((err) => {
+  console.error(err);
+  throw 'Failed to create Meyda analyzer';
+});
 
 /*
   Define the render loop.

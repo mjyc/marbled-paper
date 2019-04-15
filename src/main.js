@@ -255,9 +255,9 @@ navigator.mediaDevices.getUserMedia({
     audioContext: context,
     source: source,
     callback: features => {
-      if (features.loudness.total > 50) {
+      if (features.loudness.total > 35) {
         options.color = shuffle(options.colorPalette)[1];
-      } else if (features.loudness.total > 40) {
+      } else if (features.loudness.total > 15) {
         const position = [util.randomInRange(0.1, 0.9), util.randomInRange(0.1, 0.9)];
         addDrop(position, util.randomInRange(0.025, 0.1));
         // comb-small

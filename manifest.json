@@ -1,0 +1,7 @@
+{
+  "name": "clapclap-marbled-paper",
+  "short_name": "clapclap-marbled-paper",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000"
+}
